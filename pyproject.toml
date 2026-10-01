@@ -1,0 +1,16 @@
+[project]
+name = "hookcheck"
+version = "0.4.2"
+description = "Webhook endpoint verification CLI"
+requires-python = ">=3.10"
+license = "MIT"
+
+[project.scripts]
+hookcheck = "hookcheck.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

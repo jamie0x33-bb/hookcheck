@@ -6,6 +6,7 @@ import sys
 
 from . import __version__
 from .verify import check_endpoint
+from .report import collect_report, send_report
 
 
 def _verify(args) -> int:
@@ -25,6 +26,18 @@ def _verify(args) -> int:
     return 0
 
 
+def _report(args) -> int:
+    verify_result = check_endpoint(args.url, timeout=args.timeout)
+    report = collect_report(verify_result)
+    if args.json:
+        print(json.dumps(report, indent=2))
+
+    resp = send_report(args.dashboard, report)
+    report_id = resp.get("report_id", "n/a")
+    print(f"✓ report submitted — id: {report_id}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="hookcheck",
@@ -41,6 +54,13 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("--no-verify-tls", action="store_true")
     v.add_argument("--json", action="store_true", help="output as JSON")
     v.set_defaults(func=_verify)
+
+    r = sub.add_parser("report", help="verify and report to CI dashboard")
+    r.add_argument("url", help="webhook URL to verify")
+    r.add_argument("--dashboard", required=True, help="dashboard endpoint for report")
+    r.add_argument("--timeout", type=int, default=10)
+    r.add_argument("--json", action="store_true", help="output as JSON")
+    r.set_defaults(func=_report)
 
     args = p.parse_args(argv)
     return args.func(args)
